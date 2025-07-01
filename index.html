@@ -3,108 +3,96 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>SkyCast 🌦️</title>
+  <title>SkyCast - Weather App</title>
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icon-192.png">
   <style>
     * { box-sizing: border-box; }
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #83a4d4, #b6fbff);
-      color: #222;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-    }
-    header {
-      background: #4a90e2;
-      color: white;
-      padding: 1.5rem;
       text-align: center;
-      font-size: 2rem;
-      width: 100%;
-      box-shadow: 0 4px 8px #00000033;
-    }
-    .container {
-      margin-top: 2rem;
-      background: white;
       padding: 2rem;
-      border-radius: 1rem;
-      box-shadow: 0 4px 12px #00000022;
-      width: 90%;
-      max-width: 500px;
-      text-align: center;
+      margin: 0;
+      background: linear-gradient(to right, #6dd5fa, #2980b9);
+      color: white;
+      min-height: 100vh;
+      transition: background 0.4s ease;
+    }
+    h1 {
+      font-size: 2.5rem;
     }
     input {
-      padding: 0.8rem;
-      width: 80%;
-      font-size: 1rem;
-      border-radius: 0.5rem;
-      border: 1px solid #ccc;
-      margin-bottom: 1rem;
-    }
-    button {
-      padding: 0.8rem 1.5rem;
-      font-size: 1rem;
-      background: #4a90e2;
-      color: white;
+      padding: 1rem;
       border: none;
       border-radius: 0.5rem;
+      width: 80%;
+      max-width: 300px;
+      font-size: 1rem;
+      margin-top: 1rem;
+    }
+    button {
+      padding: 1rem 2rem;
+      margin-top: 1rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 1rem;
+      background-color: #ffffff;
+      color: #2980b9;
       cursor: pointer;
     }
-    .weather {
-      margin-top: 1.5rem;
-      font-size: 1.2rem;
+    .weather-box {
+      margin-top: 2rem;
+      padding: 2rem;
+      border-radius: 1rem;
+      background-color: rgba(255, 255, 255, 0.2);
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .weather-icon {
+      width: 100px;
+      height: 100px;
     }
   </style>
 </head>
 <body>
-  <header>SkyCast 🌦️</header>
-  <div class="container">
-    <input type="text" id="city" placeholder="Enter a city (e.g. London)">
-    <button onclick="getWeather()">Get Weather</button>
-    <div class="weather" id="weather"></div>
+  <h1>☁️ SkyCast ☀️</h1>
+  <input type="text" id="city" placeholder="Enter city name" />
+  <br>
+  <button onclick="getWeather()">Get Weather</button>
+
+  <div class="weather-box" id="weatherBox" style="display:none;">
+    <h2 id="cityName"></h2>
+    <img id="weatherIcon" class="weather-icon" src="" alt="Weather Icon" />
+    <p id="description"></p>
+    <p id="temperature"></p>
+    <p id="feelsLike"></p>
   </div>
 
   <script>
-    const weatherDiv = document.getElementById("weather");
+    const API_KEY = "1ea70d4c08a00e9f34f64620e8c99d2c";
 
     async function getWeather() {
       const city = document.getElementById("city").value.trim();
-      if (!city) {
-        weatherDiv.innerHTML = "Please enter a city!";
-        return;
-      }
+      if (!city) return alert("Please enter a city name!");
 
-      const apiKey = "1ea70d4c08a00e9f34f64620e8c99d2c";
-      const url = \`https://api.openweathermap.org/data/2.5/weather?q=\${city}&appid=\${apiKey}&units=metric\`;
+      const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${API_KEY}&units=metric`;
 
       try {
-        const response = await fetch(url);
-        const data = await response.json();
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("City not found!");
+        const data = await res.json();
 
-        if (data.cod !== 200) {
-          weatherDiv.innerHTML = "City not found 😢";
-          return;
-        }
+        document.getElementById("weatherBox").style.display = "block";
+        document.getElementById("cityName").textContent = data.name;
+        document.getElementById("description").textContent = data.weather[0].description;
+        document.getElementById("temperature").textContent = `🌡️ Temp: ${data.main.temp}°C`;
+        document.getElementById("feelsLike").textContent = `Feels like: ${data.main.feels_like}°C`;
+        document.getElementById("weatherIcon").src = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
 
-        const temp = data.main.temp;
-        const desc = data.weather[0].description;
-        const feels = data.main.feels_like;
-        const icon = data.weather[0].icon;
-
-        weatherDiv.innerHTML = \`
-          <img src="https://openweathermap.org/img/wn/\${icon}@2x.png" alt="Weather icon">
-          <p><strong>\${city.toUpperCase()}</strong></p>
-          <p>\${desc}</p>
-          <p>🌡️ Temperature: \${temp}°C</p>
-          <p>🤗 Feels like: \${feels}°C</p>
-        \`;
       } catch (error) {
-        weatherDiv.innerHTML = "Error fetching weather data. Please try again!";
+        alert("Couldn't get weather. Try again 🌀");
+        console.error(error);
       }
     }
 
